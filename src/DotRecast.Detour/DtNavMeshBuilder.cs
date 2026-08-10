@@ -157,13 +157,13 @@ namespace DotRecast.Detour
                     }
 
                     // BV-tree uses cs for all dimensions
-                    it.bmin.X = Math.Clamp((int)((bmin.X - option.bmin.X) * quantFactor), 0, int.MaxValue);
-                    it.bmin.Y = Math.Clamp((int)((bmin.Y - option.bmin.Y) * quantFactor), 0, int.MaxValue);
-                    it.bmin.Z = Math.Clamp((int)((bmin.Z - option.bmin.Z) * quantFactor), 0, int.MaxValue);
+                    it.bmin.X = RcMath.Clamp((int)((bmin.X - option.bmin.X) * quantFactor), 0, int.MaxValue);
+                    it.bmin.Y = RcMath.Clamp((int)((bmin.Y - option.bmin.Y) * quantFactor), 0, int.MaxValue);
+                    it.bmin.Z = RcMath.Clamp((int)((bmin.Z - option.bmin.Z) * quantFactor), 0, int.MaxValue);
 
-                    it.bmax.X = Math.Clamp((int)((bmax.X - option.bmin.X) * quantFactor), 0, int.MaxValue);
-                    it.bmax.Y = Math.Clamp((int)((bmax.Y - option.bmin.Y) * quantFactor), 0, int.MaxValue);
-                    it.bmax.Z = Math.Clamp((int)((bmax.Z - option.bmin.Z) * quantFactor), 0, int.MaxValue);
+                    it.bmax.X = RcMath.Clamp((int)((bmax.X - option.bmin.X) * quantFactor), 0, int.MaxValue);
+                    it.bmax.Y = RcMath.Clamp((int)((bmax.Y - option.bmin.Y) * quantFactor), 0, int.MaxValue);
+                    it.bmax.Z = RcMath.Clamp((int)((bmax.Z - option.bmin.Z) * quantFactor), 0, int.MaxValue);
                 }
                 else
                 {

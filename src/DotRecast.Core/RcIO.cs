@@ -38,11 +38,11 @@ namespace DotRecast.Core
         public static byte[] ToByteArray(BinaryReader br)
         {
             using var ms = new MemoryStream();
-            Span<byte> buffer = stackalloc byte[4096];
+            byte[] buffer = new byte[4096];
             int l;
-            while ((l = br.Read(buffer)) > 0)
+            while ((l = br.Read(buffer, 0, buffer.Length)) > 0)
             {
-                ms.Write(buffer.Slice(0, l));
+                ms.Write(buffer, 0, l);
             }
 
             return ms.ToArray();

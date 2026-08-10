@@ -1,5 +1,6 @@
 using System;
 using System.Buffers.Binary;
+using System.Runtime.InteropServices;
 
 namespace DotRecast.Core
 {
@@ -104,7 +105,7 @@ namespace DotRecast.Core
                 span.Reverse();
             }
 
-            return BitConverter.ToSingle(span);
+            return MemoryMarshal.Read<float>(span);
         }
 
         public long GetLong()

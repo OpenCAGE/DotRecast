@@ -1,4 +1,5 @@
 using System;
+using DotRecast.Core;
 
 namespace DotRecast.Core.Numerics
 {
@@ -52,7 +53,7 @@ namespace DotRecast.Core.Numerics
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(X, Y);
+            return RcHashCodes.Combine(X, Y);
         }
 
         public override string ToString()

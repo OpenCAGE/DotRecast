@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.CompilerServices;
+using DotRecast.Core;
 
 namespace DotRecast.Core.Numerics
 {
@@ -258,7 +259,7 @@ namespace DotRecast.Core.Numerics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsFinite(this RcVec3f v)
         {
-            return float.IsFinite(v.X) && float.IsFinite(v.Y) && float.IsFinite(v.Z);
+            return RcMath.IsFinite(v.X) && RcMath.IsFinite(v.Y) && RcMath.IsFinite(v.Z);
         }
 
         /// Checks that the specified vector's 2D components are finite.
@@ -266,7 +267,7 @@ namespace DotRecast.Core.Numerics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsFinite2D(this RcVec3f v)
         {
-            return float.IsFinite(v.X) && float.IsFinite(v.Z);
+            return RcMath.IsFinite(v.X) && RcMath.IsFinite(v.Z);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

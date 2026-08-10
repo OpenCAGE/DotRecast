@@ -226,8 +226,8 @@ namespace DotRecast.Recast
         {
             int ix = (int)MathF.Floor(fx * ics + 0.01f);
             int iz = (int)MathF.Floor(fz * ics + 0.01f);
-            ix = Math.Clamp(ix - hp.xmin, 0, hp.width - 1);
-            iz = Math.Clamp(iz - hp.ymin, 0, hp.height - 1);
+            ix = RcMath.Clamp(ix - hp.xmin, 0, hp.width - 1);
+            iz = RcMath.Clamp(iz - hp.ymin, 0, hp.height - 1);
             int h = hp.data[ix + iz * hp.width];
             if (h == RC_UNSET_HEIGHT)
             {
@@ -1085,7 +1085,7 @@ namespace DotRecast.Recast
             array.Add(startCellY);
             array.Add(startSpanIndex);
             int[] dirs = { 0, 1, 2, 3 };
-            Array.Fill(hp.data, 0, 0, (hp.width * hp.height) - (0));
+            RcArrays.Fill(hp.data, 0, 0, (hp.width * hp.height) - (0));
             // DFS to move to the center. Note that we need a DFS here and can not just move
             // directly towards the center without recording intermediate nodes, even though the polygons
             // are convex. In very rare we can get stuck due to contour simplification if we do not
@@ -1174,7 +1174,7 @@ namespace DotRecast.Recast
             array.Add(cx + bs);
             array.Add(cy + bs);
             array.Add(ci);
-            Array.Fill(hp.data, RC_UNSET_HEIGHT, 0, (hp.width * hp.height) - (0));
+            RcArrays.Fill(hp.data, RC_UNSET_HEIGHT, 0, (hp.width * hp.height) - (0));
             ref RcCompactSpan cs2 = ref chf.spans[ci];
             hp.data[cx - hp.xmin + (cy - hp.ymin) * hp.width] = cs2.y;
         }
@@ -1198,7 +1198,7 @@ namespace DotRecast.Recast
 
             queue.Clear();
             // Set all heights to RC_UNSET_HEIGHT.
-            Array.Fill(hp.data, RC_UNSET_HEIGHT, 0, (hp.width * hp.height) - (0));
+            RcArrays.Fill(hp.data, RC_UNSET_HEIGHT, 0, (hp.width * hp.height) - (0));
 
             bool empty = true;
 

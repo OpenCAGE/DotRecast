@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using DotRecast.Core;
 
 #pragma warning disable CS0169
 
@@ -1053,7 +1054,7 @@ namespace DotRecast.Core.Collections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Span<T> AsSpan()
         {
-            return MemoryMarshal.CreateSpan(ref _v0000, Size);
+            return RcSpans.CreateSpan(ref _v0000, Size);
         }
     }
 }

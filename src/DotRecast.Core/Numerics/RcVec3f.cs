@@ -19,6 +19,7 @@ freely, subject to the following restrictions:
 
 using System;
 using System.Runtime.CompilerServices;
+using DotRecast.Core;
 
 namespace DotRecast.Core.Numerics
 {
@@ -100,7 +101,7 @@ namespace DotRecast.Core.Numerics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override int GetHashCode()
         {
-            return HashCode.Combine(X, Y, Z);
+            return RcHashCodes.Combine(X, Y, Z);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

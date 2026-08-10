@@ -18,6 +18,7 @@ freely, subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
+using System;
 using System.Runtime.CompilerServices;
 
 namespace DotRecast.Core
@@ -34,6 +35,44 @@ namespace DotRecast.Core
         public static float Lerp(float value1, float value2, float amount)
         {
             return (value1 * (1.0f - amount)) + (value2 * amount);
+        }
+
+        // Math.Clamp / float.IsFinite are netstandard2.1+; these keep the sources buildable
+        // for netstandard2.0 consumers (CathodeLib is referenced from .NET Framework).
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int Clamp(int value, int min, int max)
+        {
+            return value < min ? min : (value > max ? max : value);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static long Clamp(long value, long min, long max)
+        {
+            return value < min ? min : (value > max ? max : value);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float Clamp(float value, float min, float max)
+        {
+            return value < min ? min : (value > max ? max : value);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static double Clamp(double value, double min, double max)
+        {
+            return value < min ? min : (value > max ? max : value);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsFinite(float f)
+        {
+            return !float.IsNaN(f) && !float.IsInfinity(f);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsFinite(double d)
+        {
+            return !double.IsNaN(d) && !double.IsInfinity(d);
         }
     }
 }

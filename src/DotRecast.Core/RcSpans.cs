@@ -1,10 +1,23 @@
 using System;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace DotRecast.Core
 {
     public static class RcSpans
     {
+        // MemoryMarshal.CreateSpan is netstandard2.1+; this keeps the sources buildable
+        // for netstandard2.0 consumers (CathodeLib is referenced from .NET Framework).
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static unsafe Span<T> CreateSpan<T>(scoped ref T reference, int length) where T : unmanaged
+        {
+#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP
+            return MemoryMarshal.CreateSpan(ref reference, length);
+#else
+            return new Span<T>(Unsafe.AsPointer(ref reference), length);
+#endif
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Copy<T>(ReadOnlySpan<T> src, Span<T> dst)
         {

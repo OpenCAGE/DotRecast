@@ -32,6 +32,27 @@ namespace DotRecast.Core
             return CopyOf(source, 0, (int)length);
         }
 
+        // Array.Fill is netstandard2.1+; these keep the sources buildable for
+        // netstandard2.0 consumers (CathodeLib is referenced from .NET Framework).
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Fill<T>(T[] array, T value)
+        {
+            for (int i = 0; i < array.Length; ++i)
+            {
+                array[i] = value;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Fill<T>(T[] array, T value, int startIndex, int count)
+        {
+            int end = startIndex + count;
+            for (int i = startIndex; i < end; ++i)
+            {
+                array[i] = value;
+            }
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T[][] Create2D<T>(int len1, int len2)
         {

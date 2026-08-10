@@ -469,7 +469,7 @@ namespace DotRecast.Recast
                 int gridSize = lw * lh;
 
                 layer.heights = new int[gridSize];
-                Array.Fill(layer.heights, 0xFF);
+                RcArrays.Fill(layer.heights, 0xFF);
                 layer.areas = new int[gridSize];
                 layer.cons = new int[gridSize];
 

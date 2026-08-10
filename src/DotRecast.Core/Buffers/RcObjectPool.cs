@@ -16,8 +16,8 @@ namespace DotRecast.Core.Buffers
 
         public T Get()
         {
-            if (_items.TryDequeue(out var result))
-                return result;
+            if (_items.Count > 0)
+                return _items.Dequeue();
 
             return _createFunc();
         }

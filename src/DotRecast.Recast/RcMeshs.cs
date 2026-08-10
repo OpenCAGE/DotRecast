@@ -542,7 +542,7 @@ namespace DotRecast.Recast
             int nb = CountPolyVerts(polys, pb, nvp);
 
             // Merge polygons.
-            Array.Fill(polys, RC_MESH_NULL_IDX, tmp, (tmp + nvp) - (tmp));
+            RcArrays.Fill(polys, RC_MESH_NULL_IDX, tmp, (tmp + nvp) - (tmp));
             int n = 0;
             // Add pa
             for (int i = 0; i < na - 1; ++i)
@@ -745,7 +745,7 @@ namespace DotRecast.Recast
                         RcArrays.Copy(mesh.polys, p2, mesh.polys, p, nvp);
                     }
 
-                    Array.Fill(mesh.polys, RC_MESH_NULL_IDX, p + nvp, (p + nvp + nvp) - (p + nvp));
+                    RcArrays.Fill(mesh.polys, RC_MESH_NULL_IDX, p + nvp, (p + nvp + nvp) - (p + nvp));
                     mesh.regs[i] = mesh.regs[mesh.npolys - 1];
                     mesh.areas[i] = mesh.areas[mesh.npolys - 1];
                     mesh.npolys--;
@@ -869,7 +869,7 @@ namespace DotRecast.Recast
 
             // Build initial polygons.
             int npolys = 0;
-            Array.Fill(polys, RC_MESH_NULL_IDX, 0, (ntris * nvp) - (0));
+            RcArrays.Fill(polys, RC_MESH_NULL_IDX, 0, (ntris * nvp) - (0));
             for (int j = 0; j < ntris; ++j)
             {
                 int t = j * 3;
@@ -953,7 +953,7 @@ namespace DotRecast.Recast
                 if (mesh.npolys >= maxTris)
                     break;
                 int p = mesh.npolys * nvp * 2;
-                Array.Fill(mesh.polys, RC_MESH_NULL_IDX, p, (p + nvp * 2) - (p));
+                RcArrays.Fill(mesh.polys, RC_MESH_NULL_IDX, p, (p + nvp * 2) - (p));
                 for (int j = 0; j < nvp; ++j)
                     mesh.polys[p + j] = polys[i * nvp + j];
                 mesh.regs[mesh.npolys] = pregs[i];
@@ -1006,7 +1006,7 @@ namespace DotRecast.Recast
 
             mesh.verts = new int[maxVertices * 3];
             mesh.polys = new int[maxTris * nvp * 2];
-            Array.Fill(mesh.polys, RC_MESH_NULL_IDX);
+            RcArrays.Fill(mesh.polys, RC_MESH_NULL_IDX);
             mesh.regs = new int[maxTris];
             mesh.areas = new int[maxTris];
 
@@ -1074,7 +1074,7 @@ namespace DotRecast.Recast
 
                 // Build initial polygons.
                 int npolys = 0;
-                Array.Fill(polys, RC_MESH_NULL_IDX);
+                RcArrays.Fill(polys, RC_MESH_NULL_IDX);
                 for (int j = 0; j < ntris; ++j)
                 {
                     int t = j * 3;
@@ -1258,7 +1258,7 @@ namespace DotRecast.Recast
 
             mesh.npolys = 0;
             mesh.polys = new int[maxPolys * 2 * mesh.nvp];
-            Array.Fill(mesh.polys, RC_MESH_NULL_IDX, 0, (mesh.polys.Length) - (0));
+            RcArrays.Fill(mesh.polys, RC_MESH_NULL_IDX, 0, (mesh.polys.Length) - (0));
             mesh.regs = new int[maxPolys];
             mesh.areas = new int[maxPolys];
             mesh.flags = new int[maxPolys];

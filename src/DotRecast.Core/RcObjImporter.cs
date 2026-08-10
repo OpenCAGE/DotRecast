@@ -73,7 +73,7 @@ namespace DotRecast.Core
 
         private static RcVec3f ReadVector3f(string line)
         {
-            string[] v = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            string[] v = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             if (v.Length < 4)
             {
                 throw new Exception("Invalid vector, expected 3 coordinates, found " + (v.Length - 1));
@@ -89,7 +89,7 @@ namespace DotRecast.Core
 
         private static void ReadFace(string line, RcObjImporterContext context)
         {
-            string[] v = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            string[] v = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             if (v.Length < 4)
             {
                 throw new Exception("Invalid number of face vertices: 3 coordinates expected, found " + v.Length);
@@ -107,7 +107,7 @@ namespace DotRecast.Core
 
         private static int ReadFaceVertex(string face, RcObjImporterContext context)
         {
-            string[] v = face.Split("/");
+            string[] v = face.Split('/');
             return GetIndex(int.Parse(v[0]), context.vertexPositions.Count);
         }
 

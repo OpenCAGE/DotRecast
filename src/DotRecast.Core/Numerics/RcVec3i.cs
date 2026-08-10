@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using DotRecast.Core;
 
 namespace DotRecast.Core.Numerics
 {
@@ -49,14 +50,14 @@ namespace DotRecast.Core.Numerics
             return X == other.X && Y == other.Y && Z == other.Z;
         }
 
-        public override bool Equals(object? obj) // null 허용 확인
+        public override bool Equals(object? obj) // null ?? ??
         {
             return obj is RcVec3i other && Equals(other);
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(X, Y, Z);
+            return RcHashCodes.Combine(X, Y, Z);
         }
 
         public override string ToString()

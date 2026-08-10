@@ -236,7 +236,7 @@ namespace DotRecast.Detour
 
             // Validate input
             if (!m_nav.IsValidPolyRef(startRef) || !centerPos.IsFinite() || maxRadius < 0
-                || !float.IsFinite(maxRadius) || null == filter || null == frand)
+                || !RcMath.IsFinite(maxRadius) || null == filter || null == frand)
             {
                 return DtStatus.DT_FAILURE | DtStatus.DT_INVALID_PARAM;
             }
@@ -621,12 +621,12 @@ namespace DotRecast.Detour
                 RcVec3i bmin;
                 RcVec3i bmax;
                 // dtClamp query box to world box.
-                float minx = Math.Clamp(qmin.X, tbmin.X, tbmax.X) - tbmin.X;
-                float miny = Math.Clamp(qmin.Y, tbmin.Y, tbmax.Y) - tbmin.Y;
-                float minz = Math.Clamp(qmin.Z, tbmin.Z, tbmax.Z) - tbmin.Z;
-                float maxx = Math.Clamp(qmax.X, tbmin.X, tbmax.X) - tbmin.X;
-                float maxy = Math.Clamp(qmax.Y, tbmin.Y, tbmax.Y) - tbmin.Y;
-                float maxz = Math.Clamp(qmax.Z, tbmin.Z, tbmax.Z) - tbmin.Z;
+                float minx = RcMath.Clamp(qmin.X, tbmin.X, tbmax.X) - tbmin.X;
+                float miny = RcMath.Clamp(qmin.Y, tbmin.Y, tbmax.Y) - tbmin.Y;
+                float minz = RcMath.Clamp(qmin.Z, tbmin.Z, tbmax.Z) - tbmin.Z;
+                float maxx = RcMath.Clamp(qmax.X, tbmin.X, tbmax.X) - tbmin.X;
+                float maxy = RcMath.Clamp(qmax.Y, tbmin.Y, tbmax.Y) - tbmin.Y;
+                float maxz = RcMath.Clamp(qmax.Z, tbmin.Z, tbmax.Z) - tbmin.Z;
                 // Quantize
                 bmin.X = (int)(qfac * minx) & 0x7ffffffe;
                 bmin.Y = (int)(qfac * miny) & 0x7ffffffe;
@@ -2263,7 +2263,7 @@ namespace DotRecast.Detour
             float t = 0.5f;
             if (DtUtils.IntersectSegSeg2D(fromPos, toPos, left, right, out var _, out var t2))
             {
-                t = Math.Clamp(t2, 0.1f, 0.9f);
+                t = RcMath.Clamp(t2, 0.1f, 0.9f);
             }
 
             pt = RcVec3f.Lerp(left, right, t);
@@ -2701,7 +2701,7 @@ namespace DotRecast.Detour
             
             if (!m_nav.IsValidPolyRef(startRef) || 
                 !centerPos.IsFinite() 
-                || radius < 0 || !float.IsFinite(radius) 
+                || radius < 0 || !RcMath.IsFinite(radius) 
                 || null == filter || maxResult < 0)
             {
                 return DtStatus.DT_FAILURE | DtStatus.DT_INVALID_PARAM;
@@ -3100,7 +3100,7 @@ namespace DotRecast.Detour
             
             if (!m_nav.IsValidPolyRef(startRef) || 
                 !centerPos.IsFinite() || 
-                radius < 0 || !float.IsFinite(radius) || 
+                radius < 0 || !RcMath.IsFinite(radius) || 
                 null == filter || maxResult < 0)
             {
                 return DtStatus.DT_FAILURE | DtStatus.DT_INVALID_PARAM;
@@ -3515,7 +3515,7 @@ namespace DotRecast.Detour
 
             // Validate input
             if (!m_nav.IsValidPolyRef(startRef) || !centerPos.IsFinite() || maxRadius < 0
-                || !float.IsFinite(maxRadius) || null == filter)
+                || !RcMath.IsFinite(maxRadius) || null == filter)
             {
                 return DtStatus.DT_FAILURE | DtStatus.DT_INVALID_PARAM;
             }

@@ -102,8 +102,8 @@ namespace DotRecast.Recast
                     {
                         int bot = span.smax;
                         int top = span.next != null ? (int)span.next.smin : MAX_HEIGHT;
-                        tempSpans[currentCellIndex].y = Math.Clamp(bot, 0, MAX_HEIGHT);
-                        tempSpans[currentCellIndex].h = Math.Clamp(top - bot, 0, MAX_HEIGHT);
+                        tempSpans[currentCellIndex].y = RcMath.Clamp(bot, 0, MAX_HEIGHT);
+                        tempSpans[currentCellIndex].h = RcMath.Clamp(top - bot, 0, MAX_HEIGHT);
                         compactHeightfield.areas[currentCellIndex] = span.area;
                         currentCellIndex++;
                         tmpCount++;

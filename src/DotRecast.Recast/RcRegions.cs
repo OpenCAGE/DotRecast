@@ -1520,7 +1520,7 @@ namespace DotRecast.Recast
                 }
                 else
                 {
-                    Array.Fill(prev, 0, 0, (id) - (0));
+                    RcArrays.Fill(prev, 0, 0, (id) - (0));
                 }
 
                 int rid = 1;
@@ -1827,7 +1827,7 @@ namespace DotRecast.Recast
                 }
                 else
                 {
-                    Array.Fill(prev, 0, 0, (id) - (0));
+                    RcArrays.Fill(prev, 0, 0, (id) - (0));
                 }
 
                 int rid = 1;

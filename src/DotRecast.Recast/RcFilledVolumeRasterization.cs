@@ -221,8 +221,8 @@ namespace DotRecast.Recast
                         int smax = (int)MathF.Ceiling((h[1] - hf.bmin.Y) * ich);
                         if (smin != smax)
                         {
-                            int ismin = Math.Clamp(smin, 0, RC_SPAN_MAX_HEIGHT);
-                            int ismax = Math.Clamp(smax, ismin + 1, RC_SPAN_MAX_HEIGHT);
+                            int ismin = RcMath.Clamp(smin, 0, RC_SPAN_MAX_HEIGHT);
+                            int ismax = RcMath.Clamp(smax, ismin + 1, RC_SPAN_MAX_HEIGHT);
                             RcRasterizations.AddSpan(hf, x, z, ismin, ismax, area, flagMergeThr);
                         }
                     }
@@ -281,12 +281,12 @@ namespace DotRecast.Recast
         {
             float[] s = MergeIntersections(
                 RayCylinderIntersection(new RcVec3f(
-                    Math.Clamp(start.X, rectangle[0], rectangle[2]), rectangle[4],
-                    Math.Clamp(start.Z, rectangle[1], rectangle[3])
+                    RcMath.Clamp(start.X, rectangle[0], rectangle[2]), rectangle[4],
+                    RcMath.Clamp(start.Z, rectangle[1], rectangle[3])
                 ), start, axis, radiusSqr),
                 RayCylinderIntersection(new RcVec3f(
-                    Math.Clamp(end.X, rectangle[0], rectangle[2]), rectangle[4],
-                    Math.Clamp(end.Z, rectangle[1], rectangle[3])
+                    RcMath.Clamp(end.X, rectangle[0], rectangle[2]), rectangle[4],
+                    RcMath.Clamp(end.Z, rectangle[1], rectangle[3])
                 ), start, axis, radiusSqr));
             float axisLen2dSqr = axis.X * axis.X + axis.Z * axis.Z;
             if (axisLen2dSqr > EPSILON)
@@ -397,7 +397,7 @@ namespace DotRecast.Recast
         {
             // 2d intersection of plane and segment
             float t = (x - start.X) / direction.X;
-            float z = Math.Clamp(start.Z + t * direction.Z, rectangle[1], rectangle[3]);
+            float z = RcMath.Clamp(start.Z + t * direction.Z, rectangle[1], rectangle[3]);
             return new RcVec3f(x, rectangle[4], z);
         }
 
@@ -410,7 +410,7 @@ namespace DotRecast.Recast
         {
             // 2d intersection of plane and segment
             float t = (z - start.Z) / direction.Z;
-            float x = Math.Clamp(start.X + t * direction.X, rectangle[0], rectangle[2]);
+            float x = RcMath.Clamp(start.X + t * direction.X, rectangle[0], rectangle[2]);
             return new RcVec3f(x, rectangle[4], z);
         }
 

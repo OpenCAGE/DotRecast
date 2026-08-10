@@ -255,12 +255,12 @@ namespace DotRecast.Detour
                 RcVec3i bmin;
                 RcVec3i bmax;
                 // dtClamp query box to world box.
-                float minx = Math.Clamp(qmin.X, tbmin.X, tbmax.X) - tbmin.X;
-                float miny = Math.Clamp(qmin.Y, tbmin.Y, tbmax.Y) - tbmin.Y;
-                float minz = Math.Clamp(qmin.Z, tbmin.Z, tbmax.Z) - tbmin.Z;
-                float maxx = Math.Clamp(qmax.X, tbmin.X, tbmax.X) - tbmin.X;
-                float maxy = Math.Clamp(qmax.Y, tbmin.Y, tbmax.Y) - tbmin.Y;
-                float maxz = Math.Clamp(qmax.Z, tbmin.Z, tbmax.Z) - tbmin.Z;
+                float minx = RcMath.Clamp(qmin.X, tbmin.X, tbmax.X) - tbmin.X;
+                float miny = RcMath.Clamp(qmin.Y, tbmin.Y, tbmax.Y) - tbmin.Y;
+                float minz = RcMath.Clamp(qmin.Z, tbmin.Z, tbmax.Z) - tbmin.Z;
+                float maxx = RcMath.Clamp(qmax.X, tbmin.X, tbmax.X) - tbmin.X;
+                float maxy = RcMath.Clamp(qmax.Y, tbmin.Y, tbmax.Y) - tbmin.Y;
+                float maxz = RcMath.Clamp(qmax.Z, tbmin.Z, tbmax.Z) - tbmin.Z;
                 // Quantize
                 bmin.X = (int)(qfac * minx) & 0x7ffffffe;
                 bmin.Y = (int)(qfac * miny) & 0x7ffffffe;
@@ -744,8 +744,8 @@ namespace DotRecast.Detour
                                     tmax = temp;
                                 }
 
-                                link.bmin = (byte)MathF.Round(Math.Clamp(tmin, 0.0f, 1.0f) * 255.0f);
-                                link.bmax = (byte)MathF.Round(Math.Clamp(tmax, 0.0f, 1.0f) * 255.0f);
+                                link.bmin = (byte)MathF.Round(RcMath.Clamp(tmin, 0.0f, 1.0f) * 255.0f);
+                                link.bmax = (byte)MathF.Round(RcMath.Clamp(tmax, 0.0f, 1.0f) * 255.0f);
                             }
                             else if (dir == 2 || dir == 6)
                             {
@@ -760,8 +760,8 @@ namespace DotRecast.Detour
                                     tmax = temp;
                                 }
 
-                                link.bmin = (byte)MathF.Round(Math.Clamp(tmin, 0.0f, 1.0f) * 255.0f);
-                                link.bmax = (byte)MathF.Round(Math.Clamp(tmax, 0.0f, 1.0f) * 255.0f);
+                                link.bmin = (byte)MathF.Round(RcMath.Clamp(tmin, 0.0f, 1.0f) * 255.0f);
+                                link.bmax = (byte)MathF.Round(RcMath.Clamp(tmax, 0.0f, 1.0f) * 255.0f);
                             }
                         }
                     }
