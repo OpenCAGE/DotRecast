@@ -114,8 +114,9 @@ namespace DotRecast.Recast
         /// @param[in]	flagMergeThreshold	How close two spans maximum extents need to be to merge area type IDs
         public static bool AddSpan(RcHeightfield heightfield, int x, int z, int min, int max, int areaID, int flagMergeThreshold)
         {
-            // Create the new span.
-            RcSpan newSpan = new RcSpan();
+            // Create the new span. From the heightfield's pool, as rcAddSpan does: a fresh object per call was tens of
+            // millions of allocations on a large level, most of them merged away again at once.
+            RcSpan newSpan = AllocSpan(heightfield);
             newSpan.smin = min;
             newSpan.smax = max;
             newSpan.area = areaID;
@@ -171,6 +172,7 @@ namespace DotRecast.Recast
                     // Remove the current span since it's now merged with newSpan.
                     // Keep going because there might be other overlapping spans that also need to be merged.
                     RcSpan next = currentSpan.next;
+                    FreeSpan(heightfield, currentSpan);
                     if (previousSpan != null)
                     {
                         previousSpan.next = next;
@@ -479,6 +481,279 @@ namespace DotRecast.Recast
             return true;
         }
 
+        //Below these a field is rasterized in one pass (RasterizeTriangles)
+        private const int RasterBandMinRows = 32;
+        private const int RasterBandMinTris = 4096;
+
+        /// The span pool and free list of one band, as the heightfield's own (AllocSpan / FreeSpan) are for a whole field.
+        private sealed class BandSpanPool
+        {
+            public RcSpanPool pools;
+            public RcSpan freelist;
+
+            public RcSpan Alloc()
+            {
+                if (freelist == null || freelist.next == null)
+                {
+                    RcSpanPool spanPool = new RcSpanPool();
+                    spanPool.next = pools;
+                    pools = spanPool;
+
+                    RcSpan freeList = freelist;
+                    int head = 0;
+                    int it = RC_SPANS_PER_POOL;
+                    do
+                    {
+                        --it;
+                        spanPool.items[it].next = freeList;
+                        freeList = spanPool.items[it];
+                    } while (it != head);
+
+                    freelist = spanPool.items[it];
+                }
+
+                RcSpan newSpan = freelist;
+                freelist = freelist.next;
+                return newSpan;
+            }
+
+            public void Free(RcSpan span)
+            {
+                if (span == null)
+                    return;
+                span.next = freelist;
+                freelist = span;
+            }
+        }
+
+        /// AddSpan, with the span taken from (and merged spans returned to) a band's pool.
+        private static void AddSpanInBand(RcHeightfield heightfield, int x, int z, int min, int max, int areaID, int flagMergeThreshold, BandSpanPool pool)
+        {
+            RcSpan newSpan = pool.Alloc();
+            newSpan.smin = min;
+            newSpan.smax = max;
+            newSpan.area = areaID;
+            newSpan.next = null;
+
+            int columnIndex = x + z * heightfield.width;
+
+            if (heightfield.spans[columnIndex] == null)
+            {
+                heightfield.spans[columnIndex] = newSpan;
+                return;
+            }
+
+            RcSpan previousSpan = null;
+            RcSpan currentSpan = heightfield.spans[columnIndex];
+
+            while (currentSpan != null)
+            {
+                if (currentSpan.smin > newSpan.smax)
+                {
+                    break;
+                }
+
+                if (currentSpan.smax < newSpan.smin)
+                {
+                    previousSpan = currentSpan;
+                    currentSpan = currentSpan.next;
+                }
+                else
+                {
+                    if (currentSpan.smin < newSpan.smin)
+                    {
+                        newSpan.smin = currentSpan.smin;
+                    }
+
+                    if (currentSpan.smax > newSpan.smax)
+                    {
+                        newSpan.smax = currentSpan.smax;
+                    }
+
+                    if (MathF.Abs(newSpan.smax - currentSpan.smax) <= flagMergeThreshold)
+                    {
+                        newSpan.area = Math.Max(newSpan.area, currentSpan.area);
+                    }
+
+                    RcSpan next = currentSpan.next;
+                    pool.Free(currentSpan);
+                    if (previousSpan != null)
+                    {
+                        previousSpan.next = next;
+                    }
+                    else
+                    {
+                        heightfield.spans[columnIndex] = next;
+                    }
+
+                    currentSpan = next;
+                }
+            }
+
+            if (previousSpan != null)
+            {
+                newSpan.next = previousSpan.next;
+                previousSpan.next = newSpan;
+            }
+            else
+            {
+                newSpan.next = heightfield.spans[columnIndex];
+                heightfield.spans[columnIndex] = newSpan;
+            }
+        }
+
+        /// RasterizeTri restricted to rows zLo..zHi: the triangle is cut row by row from its first row exactly as there, so
+        /// every row's polygon is the same, but only the band's rows are filled, and the walk stops after the band.
+        private static void RasterizeTriInBand(float[] verts, int v0, int v1, int v2,
+            int areaID, RcHeightfield heightfield,
+            RcVec3f heightfieldBBMin, RcVec3f heightfieldBBMax,
+            float cellSize, float inverseCellSize, float inverseCellHeight,
+            int flagMergeThreshold, int zLo, int zHi, BandSpanPool pool)
+        {
+            RcVec3f triBBMin = verts.ToVec3(v0 * 3);
+            triBBMin = RcVec3f.Min(triBBMin, verts.ToVec3(v1 * 3));
+            triBBMin = RcVec3f.Min(triBBMin, verts.ToVec3(v2 * 3));
+
+            RcVec3f triBBMax = verts.ToVec3(v0 * 3);
+            triBBMax = RcVec3f.Max(triBBMax, verts.ToVec3(v1 * 3));
+            triBBMax = RcVec3f.Max(triBBMax, verts.ToVec3(v2 * 3));
+
+            if (!OverlapBounds(triBBMin, triBBMax, heightfieldBBMin, heightfieldBBMax))
+            {
+                return;
+            }
+
+            int w = heightfield.width;
+            int h = heightfield.height;
+            float by = heightfieldBBMax.Y - heightfieldBBMin.Y;
+
+            int z0 = (int)((triBBMin.Z - heightfieldBBMin.Z) * inverseCellSize);
+            int z1 = (int)((triBBMax.Z - heightfieldBBMin.Z) * inverseCellSize);
+
+            z0 = RcMath.Clamp(z0, -1, h - 1);
+            z1 = RcMath.Clamp(z1, 0, h - 1);
+
+            //Nothing of this triangle reaches the band
+            if (z1 < zLo || z0 > zHi)
+            {
+                return;
+            }
+
+            Span<float> buf = stackalloc float[7 * 3 * 4];
+            int @in = 0;
+            int inRow = 7 * 3;
+            int p1 = inRow + 7 * 3;
+            int p2 = p1 + 7 * 3;
+
+            RcVec.Copy(buf, 0, verts, v0 * 3);
+            RcVec.Copy(buf, 3, verts, v1 * 3);
+            RcVec.Copy(buf, 6, verts, v2 * 3);
+            int nvRow;
+            int nvIn = 3;
+
+            for (int z = z0; z <= z1; ++z)
+            {
+                if (z > zHi)
+                {
+                    break;
+                }
+
+                float cellZ = heightfieldBBMin.Z + z * cellSize;
+                DividePoly(buf, @in, nvIn, inRow, out nvRow, p1, out nvIn, cellZ + cellSize, RcAxis.RC_AXIS_Z);
+                (@in, p1) = (p1, @in);
+
+                if (nvRow < 3)
+                {
+                    continue;
+                }
+
+                if (z < 0)
+                {
+                    continue;
+                }
+
+                //A row before the band: cut, as above, but filled by the band it belongs to
+                if (z < zLo)
+                {
+                    continue;
+                }
+
+                float minX = buf[inRow];
+                float maxX = buf[inRow];
+                for (int i = 1; i < nvRow; ++i)
+                {
+                    float v = buf[inRow + i * 3];
+                    minX = Math.Min(minX, v);
+                    maxX = Math.Max(maxX, v);
+                }
+
+                int x0 = (int)((minX - heightfieldBBMin.X) * inverseCellSize);
+                int x1 = (int)((maxX - heightfieldBBMin.X) * inverseCellSize);
+                if (x1 < 0 || x0 >= w)
+                {
+                    continue;
+                }
+
+                x0 = RcMath.Clamp(x0, -1, w - 1);
+                x1 = RcMath.Clamp(x1, 0, w - 1);
+
+                int nv;
+                int nv2 = nvRow;
+                for (int x = x0; x <= x1; ++x)
+                {
+                    float cx = heightfieldBBMin.X + x * cellSize;
+                    DividePoly(buf, inRow, nv2, p1, out nv, p2, out nv2, cx + cellSize, RcAxis.RC_AXIS_X);
+                    (inRow, p2) = (p2, inRow);
+
+                    if (nv < 3)
+                    {
+                        continue;
+                    }
+
+                    if (x < 0)
+                    {
+                        continue;
+                    }
+
+                    float spanMin = buf[p1 + 1];
+                    float spanMax = buf[p1 + 1];
+                    for (int i = 1; i < nv; ++i)
+                    {
+                        spanMin = Math.Min(spanMin, buf[p1 + i * 3 + 1]);
+                        spanMax = Math.Max(spanMax, buf[p1 + i * 3 + 1]);
+                    }
+
+                    spanMin -= heightfieldBBMin.Y;
+                    spanMax -= heightfieldBBMin.Y;
+
+                    if (spanMax < 0.0f)
+                    {
+                        continue;
+                    }
+
+                    if (spanMin > by)
+                    {
+                        continue;
+                    }
+
+                    if (spanMin < 0.0f)
+                    {
+                        spanMin = 0;
+                    }
+
+                    if (spanMax > by)
+                    {
+                        spanMax = by;
+                    }
+
+                    int spanMinCellIndex = RcMath.Clamp((int)MathF.Floor(spanMin * inverseCellHeight), 0, RC_SPAN_MAX_HEIGHT);
+                    int spanMaxCellIndex = RcMath.Clamp((int)MathF.Ceiling(spanMax * inverseCellHeight), spanMinCellIndex + 1, RC_SPAN_MAX_HEIGHT);
+
+                    AddSpanInBand(heightfield, x, z, spanMinCellIndex, spanMaxCellIndex, areaID, flagMergeThreshold, pool);
+                }
+            }
+        }
+
         /// Rasterizes a single triangle into the specified heightfield.
         ///
         /// Calling this for each triangle in a mesh is less efficient than calling rcRasterizeTriangles
@@ -531,6 +806,51 @@ namespace DotRecast.Recast
 
             float inverseCellSize = 1.0f / heightfield.cs;
             float inverseCellHeight = 1.0f / heightfield.ch;
+
+            /* A large field is rasterized in bands of rows, one band per thread. A column's spans depend only on the
+             * triangles that reach it and the ORDER they arrive in - each AddSpan merges into what the column already
+             * holds - so every band walks all the triangles in order, clipping each exactly as the sequential pass does
+             * (the same cuts from the triangle's first row, so the same remainders), and adds spans only to its own rows.
+             * Every column therefore sees the same spans in the same order. Bands write disjoint columns and take spans
+             * from pools of their own. */
+            int bands = Math.Min(Environment.ProcessorCount, heightfield.height / RasterBandMinRows);
+            if (bands > 1 && numTris >= RasterBandMinTris)
+            {
+                //A failure is reported as the sequential pass would meet it: the first triangle's, unwrapped
+                var failedAt = new int[bands];
+                var failures = new Exception[bands];
+                System.Threading.Tasks.Parallel.For(0, bands, band =>
+                {
+                    int zLo = (int)((long)heightfield.height * band / bands);
+                    int zHi = (int)((long)heightfield.height * (band + 1) / bands) - 1;
+                    var spans = new BandSpanPool();
+                    int triIndex = 0;
+                    try
+                    {
+                        for (; triIndex < numTris; ++triIndex)
+                        {
+                            int v0 = tris[triIndex * 3 + 0];
+                            int v1 = tris[triIndex * 3 + 1];
+                            int v2 = tris[triIndex * 3 + 2];
+                            RasterizeTriInBand(verts, v0, v1, v2, triAreaIDs[triIndex], heightfield, heightfield.bmin, heightfield.bmax, heightfield.cs,
+                                inverseCellSize, inverseCellHeight, flagMergeThreshold, zLo, zHi, spans);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        failedAt[band] = triIndex;
+                        failures[band] = e;
+                    }
+                });
+                int first = -1;
+                for (int band = 0; band < bands; band++)
+                    if (failures[band] != null && (first < 0 || failedAt[band] < failedAt[first]))
+                        first = band;
+                if (first >= 0)
+                    System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(failures[first]).Throw();
+                return;
+            }
+
             for (int triIndex = 0; triIndex < numTris; ++triIndex)
             {
                 int v0 = tris[triIndex * 3 + 0];

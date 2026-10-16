@@ -67,14 +67,22 @@ namespace DotRecast.Core
                 .AddAndGet(RcFrequency.Ticks - _timerStart.Value?[label.Name].Read() ?? 0);
         }
 
+        /// Where Warn and Log go instead of the console while set on this thread: a caller running builds side by side
+        /// collects each build's lines and prints them where the builds, one after another, would have printed them.
+        [ThreadStatic] public static List<string> Capture;
+
         public void Warn(string message)
         {
-            Console.WriteLine(message);
+            List<string> capture = Capture;
+            if (capture != null) capture.Add(message);
+            else Console.WriteLine(message);
         }
 
         public void Log(RcLogCategory logLevel, string message)
         {
-            Console.WriteLine(message);
+            List<string> capture = Capture;
+            if (capture != null) capture.Add(message);
+            else Console.WriteLine(message);
         }
 
         public List<RcTelemetryTick> ToList()

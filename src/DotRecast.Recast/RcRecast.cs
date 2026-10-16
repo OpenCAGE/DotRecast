@@ -112,6 +112,13 @@ namespace DotRecast.Recast
             span.con = (con & ~(0x3f << shift)) | ((neighborIndex & 0x3f) << shift);
         }
 
+        /// Sets the neighbor connection data for the specified direction, on packed connection data held directly.
+        public static void SetCon(ref int con, int direction, int neighborIndex)
+        {
+            int shift = direction * 6;
+            con = (con & ~(0x3f << shift)) | ((neighborIndex & 0x3f) << shift);
+        }
+
         /// Gets neighbor connection data for the specified direction.
         /// @param[in]		span		The span to check.
         /// @param[in]		direction	The direction to check. [Limits: 0 <= value < 4]
